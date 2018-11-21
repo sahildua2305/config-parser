@@ -1,0 +1,9 @@
+# .pyc files
+*.pyc
+
+# coverage stuff
+.coverage
+htmlcov/*
+
+# visual studio stuff
+.vscode
