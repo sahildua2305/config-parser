@@ -103,15 +103,15 @@ class AttributeDict(dict):
     which makes it possible to access dictionary keys
     as attributes.
 
+    For example:
+    config["one"]["two"] can be accessed as: config.one.two
+
     We achieve this feature by overriding __getattr__ method
     to return None when the key doesn't exist.
-    
+
     We have also overridden __getitem__ method in order to
     support returning None for non-existent keys when user is
     trying to access the non-existent key as config["key"].
-
-    For example:
-    config["one"]["two"] can be accessed as: config.one.two
     """
 
     def __init__(self):
@@ -122,18 +122,6 @@ class AttributeDict(dict):
 
     def __getitem__(self, key):
         return self.get(key, None)
-
-
-def read_file_lines(file_path):
-    """Function reads the file at given path and yields
-    lines from the file. This is a handy way to handle
-    reading big files line by line.
-
-    Returns a generator.
-    """
-    with open(file_path) as file:
-        for line in file:
-            yield line
 
 
 def is_empty_line(line):
@@ -323,63 +311,68 @@ def load_config(file_path, overrides=None):
     if overrides is not None:
         enabled_overrides = set(overrides)
 
-    for line in read_file_lines(file_path):
-        line_number += 1
+    # Open the given file and read it line by line.
+    # This is a handy way to handle reading big files where we
+    # don't need to keep more than one line in memory at one time.
+    with open(file_path) as file:
+        for line in file:
+            line_number += 1
 
-        # Trim off the inline comment from end of the line.
-        line = trim_comment(line)
+            # Trim off the inline comment from end of the line.
+            line = trim_comment(line)
 
-        # Skip the empty lines.
-        # Here, we are also covering the line which contains a comment
-        # only. For such a line, we will be left with empty string after
-        # trimming the comment on last line.
-        if is_empty_line(line):
-            continue
+            # Skip the empty lines.
+            # Here, we are also covering the line which contains a comment
+            # only. For such a line, we will be left with empty string after
+            # trimming the comment on last line.
+            if is_empty_line(line):
+                continue
 
-        # Try to parse group name from current line.
-        new_group = parse_group_name(line)
-        if new_group is not None:
-            # If we have seen this group before, raise exception.
+            # Try to parse group name from current line.
+            new_group = parse_group_name(line)
+            if new_group is not None:
+                # If we have seen this group before, raise exception.
+                #
+                # IDEA: We have two alternate options here.
+                # - we can overwrite the group settings if we find it again.
+                # - we can ignore if a group is found as a duplicate.
+                if new_group in config:
+                    raise DuplicateGroupError(new_group, file_path, line_number)
+
+                # Initialize a new AttributeDict since this is a new group.
+                config[new_group] = AttributeDict()
+                # Update current group to which we will be saving all next settings.
+                curr_group = new_group
+                continue
+
+            # Try to parse (setting, value) pair from current line.
+            original_setting, value = parse_setting_value(line)
+            if original_setting is not None and value is not None:
+                # If we found a settings line, however, there was no group
+                # found before while parsing this file, raise exception.
+                #
+                # IDEA: This scenario is up to us how we want to handle it.
+                # Alternatively, we could also simply ignore all settings
+                # until we find a group in the file.
+                if curr_group is None:
+                    raise MissingGroupError(file_path, line_number)
+
+                # Try to parse according to setting override pattern.
+                setting_without_override, override, __ = parse_setting_override_value(line)
+                if override is None: # no override found
+                    config[curr_group][original_setting] = value
+                elif override in enabled_overrides: # an enabled override found
+                    config[curr_group][setting_without_override] = value
+                continue
+
+            # If we reach this point, that means we weren't able to parse
+            # the current line in any of the known ways.
             #
-            # IDEA: We have two alternate options here.
-            # - we can overwrite the group settings if we find it again.
-            # - we can ignore if a group is found as a duplicate.
-            if new_group in config:
-                raise DuplicateGroupError(new_group, file_path, line_number)
+            # IDEA: This decision is up to us how we want to handle it.
+            # Alternatively, we could also simply ignore any line that we don't
+            # identify and keep on reading the file further.
+            raise InvalidLineError(file_path, line_number)
 
-            # Initialize a new AttributeDict since this is a new group.
-            config[new_group] = AttributeDict()
-            # Update current group to which we will be saving all next settings.
-            curr_group = new_group
-            continue
-
-        # Try to parse (setting, value) pair from current line.
-        original_setting, value = parse_setting_value(line)
-        if original_setting is not None and value is not None:
-            # If we found a settings line, however, there was no group
-            # found before while parsing this file, raise exception.
-            #
-            # IDEA: This scenario is up to us how we want to handle it.
-            # Alternatively, we could also simply ignore all settings
-            # until we find a group in the file.
-            if curr_group is None:
-                raise MissingGroupError(file_path, line_number)
-
-            # Try to parse according to setting override pattern.
-            setting_without_override, override, __ = parse_setting_override_value(line)
-            if override is None: # no override found
-                config[curr_group][original_setting] = value
-            elif override in enabled_overrides: # an enabled override found
-                config[curr_group][setting_without_override] = value
-            continue
-
-        # If we reach this point, that means we weren't able to parse
-        # the current line in any of the known ways.
-        #
-        # IDEA: This decision is up to us how we want to handle it.
-        # Alternatively, we could also simply ignore any line that we don't
-        # identify and keep on reading the file further.
-        raise InvalidLineError(file_path, line_number)
     return config
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 # Run with: `python -m unittest discover`
 
 import unittest
-import config
+import config_parser
 
 
 class TestGetInt(unittest.TestCase):
@@ -10,15 +10,15 @@ class TestGetInt(unittest.TestCase):
 
     def test_valid_int_value(self):
         s = "1"
-        self.assertEqual(config.get_int(s), 1)
+        self.assertEqual(config_parser.get_int(s), 1)
 
     def test_invalid_int_float_value(self):
         s = "1.00"
-        self.assertIsNone(config.get_int(s))
+        self.assertIsNone(config_parser.get_int(s))
 
     def test_invalid_int_value(self):
         s = "as"
-        self.assertIsNone(config.get_int(s))
+        self.assertIsNone(config_parser.get_int(s))
 
 
 class TestGetFloat(unittest.TestCase):
@@ -27,15 +27,15 @@ class TestGetFloat(unittest.TestCase):
 
     def test_valid_float_value(self):
         s = "1.00"
-        self.assertEqual(config.get_float(s), 1.00)
+        self.assertEqual(config_parser.get_float(s), 1.00)
 
     def test_valid_float_int_value(self):
         s = "1"
-        self.assertEqual(config.get_float(s), 1)
+        self.assertEqual(config_parser.get_float(s), 1)
 
     def test_invalid_float_value(self):
         s = "1.2s"
-        self.assertIsNone(config.get_float(s))
+        self.assertIsNone(config_parser.get_float(s))
 
 
 class TestGetBoolean(unittest.TestCase):
@@ -44,23 +44,23 @@ class TestGetBoolean(unittest.TestCase):
 
     def test_valid_true_boolean_value(self):
         s = "true"
-        self.assertTrue(config.get_boolean(s))
+        self.assertTrue(config_parser.get_boolean(s))
 
     def test_valid_zero_boolean_value(self):
         s = "0"
-        self.assertFalse(config.get_boolean(s))
+        self.assertFalse(config_parser.get_boolean(s))
 
     def test_valid_no_boolean_value(self):
         s = "no"
-        self.assertFalse(config.get_boolean(s))
+        self.assertFalse(config_parser.get_boolean(s))
 
     def test_invalid_boolean_value_string(self):
         s = "what"
-        self.assertIsNone(config.get_boolean(s))
+        self.assertIsNone(config_parser.get_boolean(s))
 
     def test_invalid_boolean_value_list(self):
         s = "no,yes"
-        self.assertIsNone(config.get_boolean(s))
+        self.assertIsNone(config_parser.get_boolean(s))
 
 
 class TestGetList(unittest.TestCase):
@@ -70,34 +70,34 @@ class TestGetList(unittest.TestCase):
     def test_valid_list_without_space(self):
         s = "array,of,values"
         self.assertListEqual(
-            config.get_list(s),
+            config_parser.get_list(s),
             ["array", "of", "values"]
         )
 
     def test_valid_list_with_space(self):
         s = "array, of, values"
         self.assertListEqual(
-            config.get_list(s),
+            config_parser.get_list(s),
             ["array", "of", "values"]
         )
 
     def test_valid_list_of_booleans(self):
         s = "1,true, no"
         self.assertListEqual(
-            config.get_list(s),
+            config_parser.get_list(s),
             [True, True, False]
         )
 
     def test_valid_list_of_int_floats(self):
         s = "1.0, 2, 3.3"
         self.assertListEqual(
-            config.get_list(s),
+            config_parser.get_list(s),
             [1.0, 2, 3.3]
         )
 
     def test_invalid_list_string(self):
         s = "word"
-        self.assertIsNone(config.get_list(s))
+        self.assertIsNone(config_parser.get_list(s))
 
 class TestTrimComment(unittest.TestCase):
     """Class to test `trim_comment` method.
@@ -105,15 +105,15 @@ class TestTrimComment(unittest.TestCase):
 
     def test_trim_inline_comment(self):
         line = "path = /tmp/; comment"
-        self.assertEqual(config.trim_comment(line), "path = /tmp/")
+        self.assertEqual(config_parser.trim_comment(line), "path = /tmp/")
 
     def test_trim_full_line_comment(self):
         line = "; comment line"
-        self.assertEqual(config.trim_comment(line), "")
+        self.assertEqual(config_parser.trim_comment(line), "")
 
     def test_trim_full_line_comment_with_leading_spaces(self):
         line = "                ;      comment line"
-        self.assertEqual(config.trim_comment(line), "")
+        self.assertEqual(config_parser.trim_comment(line), "")
 
 
 class TestParseGroupName(unittest.TestCase):
@@ -122,15 +122,15 @@ class TestParseGroupName(unittest.TestCase):
 
     def test_valid_group_name(self):
         line = "[http]"
-        self.assertEqual(config.parse_group_name(line), "http")
+        self.assertEqual(config_parser.parse_group_name(line), "http")
 
     def test_invalid_group_name(self):
         line = "http"
-        self.assertIsNone(config.parse_group_name(line))
+        self.assertIsNone(config_parser.parse_group_name(line))
 
     def test_empty_group_name(self):
         line = "[]"
-        self.assertIsNone(config.parse_group_name(line))
+        self.assertIsNone(config_parser.parse_group_name(line))
 
 
 class TestParseSettingValue(unittest.TestCase):
@@ -140,63 +140,63 @@ class TestParseSettingValue(unittest.TestCase):
     def test_invalid_setting_value(self):
         line = "[group]"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             (None, None)
         )
 
     def test_valid_setting_value_with_space(self):
         line = "path = /tmp/"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("path", "/tmp/")
         )
 
     def test_valid_setting_value_without_space(self):
         line = "path=/tmp/"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("path", "/tmp/")
         )
 
     def test_empty_string(self):
         line = "=1"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             (None, None)
         )
     
     def test_valid_setting_value_with_override(self):
         line = "path<staging> = /srv/uploads/"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("path<staging>", "/srv/uploads/")
         )
 
     def test_valid_setting_int_value(self):
         line = "basic_size_limit = 26214400"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("basic_size_limit", 26214400)
         )
 
     def test_valid_setting_boolean_value(self):
         line = "enabled = no"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("enabled", False)
         )
 
     def test_valid_list_value_without_space(self):
         line = "params = array,of,values"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("params", ["array", "of", "values"])
         )
 
     def test_valid_list_value_with_space(self):
         line = "params = array, of, values"
         self.assertTupleEqual(
-            config.parse_setting_value(line),
+            config_parser.parse_setting_value(line),
             ("params", ["array", "of", "values"])
         )
 
@@ -208,14 +208,14 @@ class TestParseSettingOverrideValue(unittest.TestCase):
     def test_valid_setting_override_value(self):
         line = "path<production> = /srv/var/tmp/"
         self.assertTupleEqual(
-            config.parse_setting_override_value(line),
+            config_parser.parse_setting_override_value(line),
             ("path", "production", "/srv/var/tmp/")
         )
 
     def test_invalid_setting_override_value(self):
         line = "path = /srv/var/tmp/"
         self.assertTupleEqual(
-            config.parse_setting_override_value(line),
+            config_parser.parse_setting_override_value(line),
             (None, None, None)
         )
 
@@ -225,7 +225,8 @@ class TestLoadConfig(unittest.TestCase):
     """
 
     def test_valid_small_config_without_overrides(self):
-        CONFIG = config.load_config("./test_config_data/config_small.conf")
+        CONFIG = config_parser.load_config(
+            "./test_config_data/config_small.conf")
 
         # Check for type of CONFIG
         self.assertIsNotNone(CONFIG)
@@ -249,7 +250,8 @@ class TestLoadConfig(unittest.TestCase):
         )
 
     def test_valid_small_config_with_overrides(self):
-        CONFIG = config.load_config("./test_config_data/config_small.conf", overrides=["production", "ubuntu"])
+        CONFIG = config_parser.load_config(
+            "./test_config_data/config_small.conf", overrides=["production", "ubuntu"])
 
         # Check for type of CONFIG
         self.assertIsNotNone(CONFIG)
@@ -279,16 +281,20 @@ class TestLoadConfig(unittest.TestCase):
         self.assertEqual(CONFIG.ftp["path"], "/etc/var/uploads")
 
     def test_invalid_config_with_missing_group(self):
-        with self.assertRaises(config.MissingGroupError):
-            ___ = config.load_config("./test_config_data/config_missing_group.conf")
+        with self.assertRaises(config_parser.MissingGroupError):
+            ___ = config_parser.load_config("./test_config_data/config_missing_group.conf")
 
     def test_invalid_config_with_duplicate_group(self):
-        with self.assertRaises(config.DuplicateGroupError):
-            __ = config.load_config("./test_config_data/config_duplicate_group.conf")
+        with self.assertRaises(config_parser.DuplicateGroupError):
+            __ = config_parser.load_config("./test_config_data/config_duplicate_group.conf")
 
     def test_invalid_config_with_garbage_line(self):
-        with self.assertRaises(config.InvalidLineError):
-            __ = config.load_config("./test_config_data/config_garbage_line.conf")
+        with self.assertRaises(config_parser.InvalidLineError):
+            __ = config_parser.load_config("./test_config_data/config_garbage_line.conf")
+    
+    def test_invalid_config_missing_file(self):
+        with self.assertRaises(IOError):
+            __ = config_parser.load_config("./test_config_data/config_missing_file.conf")
 
 if __name__ == "__main__":
     unittest.main()
