@@ -16,7 +16,7 @@ import re
 # Compiled regular expression for matching group name.
 _GROUP_TMPL = r"""
     \[      # [
-    (.+)   # group
+    (.+)    # group
     \]      # ]
     """
 GROUP_CRE = re.compile(_GROUP_TMPL, re.VERBOSE)
@@ -24,9 +24,9 @@ GROUP_CRE = re.compile(_GROUP_TMPL, re.VERBOSE)
 # Compiled regular expression for matching (setting, value) pair.
 _SETTING_TMPL = r"""
     ^(.+)    # setting
-    \s?       # optional space
-    =         # =
-    \s?       # optional space
+    \s?      # optional space
+    =        # =
+    \s?      # optional space
     (.+)$    # value
     """
 SETTING_CRE = re.compile(_SETTING_TMPL, re.VERBOSE)
@@ -35,9 +35,9 @@ SETTING_CRE = re.compile(_SETTING_TMPL, re.VERBOSE)
 _SETTING_OVERRIDE_TMPL = r"""
     ^(.+)      # setting
     <(.+)>     # <override>
-    \s?         # optional space
-    =           # =
-    \s?         # optional space
+    \s?        # optional space
+    =          # =
+    \s?        # optional space
     (.+)$      # value
     """
 SETTING_OVERRIDE_CRE = re.compile(_SETTING_OVERRIDE_TMPL, re.VERBOSE)
@@ -51,9 +51,9 @@ COMMENT_CRE = re.compile(_COMMENT_TMPL, re.VERBOSE)
 
 # Compiled regular expression for matching quoted strings.
 _QUOTED_STRING_TMPL = r"""
-    (\"|\')
-    (.+)
-    (\"|\')
+    (\"|\')    # " or '
+    (.+)       # string
+    (\"|\')    # " or '
     """
 QUOTED_STRING_CRE = re.compile(_QUOTED_STRING_TMPL, re.VERBOSE)
 
