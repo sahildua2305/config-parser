@@ -2,7 +2,7 @@
 
 A simple config parser to read and parse configuration from a given file.
 
-It provides a method `load_config` to read and parse configuration from a given file.
+It provides a function `load_config` to read and parse configuration from a given file. It return config as an `AttributeDict` object.
 
 ## Usage:
 
@@ -20,6 +20,11 @@ It provides a method `load_config` to read and parse configuration from a given 
 >>> CONFIG.non_existent # returns None when you ask for non-existent key.
 
 None
+```
+
+To see an example of usage of `load_config` function, you can also run the following command:
+```
+make run
 ```
 
 ## Tests
@@ -40,11 +45,11 @@ python -m unittest discover
 
 ## Design Decisions
 
-1. To handle very large configurations files, we are reading the file line by line which means we will never hold the entire file in memory.
+1. One of the biggest design decision is to use `AttributeDict` which is extended from Python dict. In order to make sure we can access dictionary keys using attribute access method (config.something), we have overridden `__getattr__` method. Similarly, in order to make sure we can handle accessing non-existent keys using dictionary key access method (config["something"]), we have overridden `__getitem__` method. This data structure will ensure that we will not crash or exit the program while accessing any kind of key. A default value `None` is returned when a key doesn't exist.
 
-2. We have used compiled regular expressions because it's more efficient to reuse them as they are going to be used several times in a run of the module.
+2. To handle very large configurations files, we are reading the file line by line which means we will never hold the entire file in memory.
 
-3. One of the biggest design decision is to use `AttributeDict` which is extended from Python dict. In order to make sure we can access dictionary keys using attribute access method (config.something), we have overridden `__getattr__` method. Similarly, in order to make sure we can handle accessing non-existent keys using dictionary key access method (config["something"]), we have overridden `__getitem__` method. This data structure will ensure that we will not crash or exit the program while accessing any kind of key. A default value `None` is returned when a key doesn't exist.
+3. We have used compiled regular expressions because it's more efficient to reuse them as they are going to be used several times in a run of the module.
 
 4. When we read a (setting_name, value) pair, we have assumed that the `setting_name` will always be parsed as a string. However, `value` can be parsed as any of the primitives (int, float, boolean, string) or some of the non-primitives (list). We have assumed that a `value` can't be parsed as a dict or tuple.
 
