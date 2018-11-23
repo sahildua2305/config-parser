@@ -1,7 +1,16 @@
-"""
-Config Parser 
-"""
+# -*- coding: utf-8 -*-
+"""Config Parser
 
+A simple config parser which provides a method `load_config` to
+read and parse configuration from a given file.
+
+Usage:
+    >>> CONFIG = load_config("/srv/settings.conf", ["ubuntu", "production"]))
+    >>> CONFIG.groupname.setting # returns value of `setting` in `groupname`.
+    "value of setting"
+    >>> CONFIG.groupname # returns a dict with all settings for `groupname`.
+    {"setting": "value"}
+"""
 import re
 
 # Compiled regular expression for matching group name.
@@ -57,15 +66,16 @@ PERMITTED_BOOLEAN_VALUES = {
 
 
 class Error(Exception):
-    """Base class for custom exceptions.
-    """
+    """Base class for custom exceptions."""
 
     def __init__(self, message):
         super(Error, self).__init__(message)
 
 
 class DuplicateGroupError(Error):
-    """Custom error to return when a duplicate group is found
+    """Custom error when a duplicate group is found.
+
+    We raise this error when a duplicate group is found
     while parsing the configuration file.
     """
 
@@ -76,7 +86,9 @@ class DuplicateGroupError(Error):
 
 
 class InvalidLineError(Error):
-    """Custom error to return when a line can't be parsed
+    """Custom error when a line is unreadable.
+
+    We raise this error when a line can't be parsed
     according to any of the known patterns.
     """
 
@@ -87,7 +99,9 @@ class InvalidLineError(Error):
 
 
 class MissingGroupError(Error):
-    """Custom error to return when the file doesn't start
+    """Custom error when a group name is missing.
+
+    We raise this error when the file doesn't start
     with a group. This means we don't know how to handle the
     settings in the beginning of the file.
     """
@@ -99,7 +113,9 @@ class MissingGroupError(Error):
 
 
 class AttributeDict(dict):
-    """AttributeDict is a wrapper around python dict
+    """Custom dict object for attribute access.
+
+    AttributeDict is a wrapper around python dict
     which makes it possible to access dictionary keys
     as attributes.
 
@@ -116,7 +132,7 @@ class AttributeDict(dict):
 
     def __init__(self):
         super(AttributeDict, self).__init__()
-    
+
     def __getattr__(self, key):
         return self.get(key, None)
 
@@ -135,9 +151,10 @@ def is_empty_line(line):
 
 
 def parse_group_name(line):
-    """Function to parse the group name from the following
-    pattern:
+    """Function to parse the group name.
 
+    The group name line will be of the following
+    pattern:
     [group]
 
     Returns a string.
@@ -149,9 +166,9 @@ def parse_group_name(line):
 
 
 def parse_setting_value(line):
-    """Function to parse the setting value from the following
-    pattern:
+    """Function to parse the setting value.
 
+    The setting value line will be of the following pattern:
     setting = value
 
     Returns a tuple of (setting, value).
@@ -166,9 +183,10 @@ def parse_setting_value(line):
 
 
 def parse_setting_override_value(line):
-    """Function to parse the setting override value from the following
-    pattern:
+    """Function to parse the setting override value.
 
+    The setting override value line will be of the following
+    pattern:
     setting<override> = value
 
     Returns a tuple of (setting, override, value).
@@ -184,15 +202,15 @@ def parse_setting_override_value(line):
 
 
 def trim_comment(line):
-    """Function to trim off the comment starting with ';'
-    character from the given line. A typical comment looks
-    like this:
+    """Function to trim off the comment.
+
+    Returns the line after trimming off the comment part
+    starting with ';' character from the given line. A typical
+    comment looks like this:
 
     ; this is a comment
     or
     [group]; this is a comment
-
-    Returns the line after trimming the comment, if any.
     """
     return COMMENT_CRE.sub(repl="", string=line).strip()
 
@@ -206,8 +224,10 @@ def is_number(s):
 
 
 def get_int(s):
-    """Function to return int value from the string, if
-    it's a valid one.
+    """Function to return int value from the string.
+
+    Returns an int value from the given string, if it's a
+    valid one.
     """
     try:
         return int(s)
@@ -216,8 +236,10 @@ def get_int(s):
 
 
 def get_float(s):
-    """Function to return float value from the string, if
-    it's a valid one.
+    """Function to return float value from the string.
+
+    Returns a float value from the given string, if it's a
+    valid one.
     """
     try:
         return float(s)
@@ -226,8 +248,10 @@ def get_float(s):
 
 
 def get_boolean(s):
-    """Function to return boolean value from the string, if
-    it's a valid one according to the permitted boolean values.
+    """Function to return boolean value from the string.
+
+    Returns a boolean value from the given string, if it's a valid
+    one according to the permitted boolean values.
     """
     if s.lower() in PERMITTED_BOOLEAN_VALUES:
         return PERMITTED_BOOLEAN_VALUES[s]
@@ -235,8 +259,10 @@ def get_boolean(s):
 
 
 def get_list(s):
-    """Function to return list of strings, if the given string
-    is a comma separated list of values.
+    """Function to return list of strings.
+
+    Returns a list of strings if the given string is a comma
+    separated list of values.
     """
     list_value = s.split(",")
     if len(list_value) > 1:
@@ -246,6 +272,9 @@ def get_list(s):
 
 def get_quoted_string(s):
     """Function to return quoted string.
+
+    Returns a string if the given string is a quoted string
+    with single or double quotes.
     """
     quoted_string = QUOTED_STRING_CRE.match(s)
     if quoted_string is not None and len(quoted_string.groups()) == 3:
@@ -255,8 +284,8 @@ def get_quoted_string(s):
 
 def parse_value(value):
     """Function to parse a setting value.
-    The string parsed can be any of the following types:
 
+    The string parsed can be any of the following types:
     int
     boolean
     array of comma separated values
@@ -302,7 +331,8 @@ def load_config(file_path, overrides=None):
     config = AttributeDict()
     # Keeping track of line number here to be used for error reporting.
     line_number = 0
-    # Keeping track of current group here to be used to save setting, value pairs.
+    # Keeping track of current group here to be used to save
+    # setting, value pairs.
     curr_group = None
 
     # Convert overrides into a set so that we can easily look up
@@ -314,8 +344,8 @@ def load_config(file_path, overrides=None):
     # Open the given file and read it line by line.
     # This is a handy way to handle reading big files where we
     # don't need to keep more than one line in memory at one time.
-    with open(file_path) as file:
-        for line in file:
+    with open(file_path) as fp:
+        for line in fp:
             line_number += 1
 
             # Trim off the inline comment from end of the line.
@@ -337,11 +367,14 @@ def load_config(file_path, overrides=None):
                 # - we can overwrite the group settings if we find it again.
                 # - we can ignore if a group is found as a duplicate.
                 if new_group in config:
-                    raise DuplicateGroupError(new_group, file_path, line_number)
+                    raise DuplicateGroupError(new_group,
+                                              file_path,
+                                              line_number)
 
                 # Initialize a new AttributeDict since this is a new group.
                 config[new_group] = AttributeDict()
-                # Update current group to which we will be saving all next settings.
+                # Update current group to which we will be saving all
+                # next settings.
                 curr_group = new_group
                 continue
 
@@ -359,9 +392,9 @@ def load_config(file_path, overrides=None):
 
                 # Try to parse according to setting override pattern.
                 setting_without_override, override, __ = parse_setting_override_value(line)
-                if override is None: # no override found
+                if override is None:   # no override found
                     config[curr_group][original_setting] = value
-                elif override in enabled_overrides: # an enabled override found
+                elif override in enabled_overrides:  # an enabled override found
                     config[curr_group][setting_without_override] = value
                 continue
 
@@ -374,6 +407,7 @@ def load_config(file_path, overrides=None):
             raise InvalidLineError(file_path, line_number)
 
     return config
+
 
 if __name__ == "__main__":
     CONFIG = load_config("./config_data/sample_config.conf", overrides=['ubuntu', 'production'])
