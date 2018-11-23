@@ -5,8 +5,7 @@ import config_parser
 
 
 class TestGetInt(unittest.TestCase):
-    """Class to test `get_int` method.
-    """
+    """Class to test `get_int` method."""
 
     def test_valid_int_value(self):
         s = "1"
@@ -22,8 +21,7 @@ class TestGetInt(unittest.TestCase):
 
 
 class TestGetFloat(unittest.TestCase):
-    """Class to test `get_float` method.
-    """
+    """Class to test `get_float` method."""
 
     def test_valid_float_value(self):
         s = "1.00"
@@ -39,8 +37,7 @@ class TestGetFloat(unittest.TestCase):
 
 
 class TestGetBoolean(unittest.TestCase):
-    """Class to test `get_boolean` method.
-    """
+    """Class to test `get_boolean` method."""
 
     def test_valid_true_boolean_value(self):
         s = "true"
@@ -64,8 +61,7 @@ class TestGetBoolean(unittest.TestCase):
 
 
 class TestGetList(unittest.TestCase):
-    """Class to test `get_list` method.
-    """
+    """Class to test `get_list` method."""
 
     def test_valid_list_without_space(self):
         s = "array,of,values"
@@ -100,8 +96,7 @@ class TestGetList(unittest.TestCase):
         self.assertIsNone(config_parser.get_list(s))
 
 class TestTrimComment(unittest.TestCase):
-    """Class to test `trim_comment` method.
-    """
+    """Class to test `trim_comment` method."""
 
     def test_trim_inline_comment(self):
         line = "path = /tmp/; comment"
@@ -117,8 +112,7 @@ class TestTrimComment(unittest.TestCase):
 
 
 class TestParseGroupName(unittest.TestCase):
-    """Class to test `parse_group_name` method.
-    """
+    """Class to test `parse_group_name` method."""
 
     def test_valid_group_name(self):
         line = "[http]"
@@ -134,8 +128,7 @@ class TestParseGroupName(unittest.TestCase):
 
 
 class TestParseSettingValue(unittest.TestCase):
-    """Class to test `parse_setting_value` method.
-    """
+    """Class to test `parse_setting_value` method."""
 
     def test_invalid_setting_value(self):
         line = "[group]"
@@ -202,8 +195,7 @@ class TestParseSettingValue(unittest.TestCase):
 
 
 class TestParseSettingOverrideValue(unittest.TestCase):
-    """Class to test `parse_setting_override_value` method.
-    """
+    """Class to test `parse_setting_override_value` method."""
 
     def test_valid_setting_override_value(self):
         line = "path<production> = /srv/var/tmp/"
@@ -221,8 +213,7 @@ class TestParseSettingOverrideValue(unittest.TestCase):
 
 
 class TestLoadConfig(unittest.TestCase):
-    """Class to test `load_config` method.
-    """
+    """Class to test `load_config` method."""
 
     def test_valid_small_config_without_overrides(self):
         CONFIG = config_parser.load_config(
@@ -295,6 +286,7 @@ class TestLoadConfig(unittest.TestCase):
     def test_invalid_config_missing_file(self):
         with self.assertRaises(IOError):
             __ = config_parser.load_config("./test_config_data/config_missing_file.conf")
+
 
 if __name__ == "__main__":
     unittest.main()
