@@ -325,7 +325,8 @@ def parse_value(value):
 
 def load_config(file_path, overrides=None):
     """Main function to parse a configuration file from a given
-    file path and a list of overrides.
+    file path and a list of overrides. It return config as
+    an `AttributeDict` object.
     """
     # Initialize config as AttributeDict.
     config = AttributeDict()
